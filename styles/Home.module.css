@@ -49,17 +49,20 @@
   .mapContainer {
     position: relative;
     width: 100%;
-    max-width: 800px;
+    max-width: 600px;
+    height: 400px;
     margin: 0 auto;
+    overflow: visible;
   }
   
   .map {
     color: #00ff00;
-    font-size: 14px;
-    line-height: 1.2;
+    font-size: 12px;
+    line-height: 1;
     white-space: pre;
     margin: 0;
     text-align: left;
+    overflow: visible;
   }
   
   .stadiumMarker {
@@ -89,6 +92,23 @@
     border: 1px solid #00ff00;
     border-radius: 5px;
     text-align: center;
+  }
+  
+  .resetButton {
+    background-color: #333;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    padding: 0.5rem 1rem;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: all 0.2s ease;
+  }
+  
+  .resetButton:hover {
+    background-color: #00ff00;
+    color: #000;
   }
   
   .probabilityCircle {
