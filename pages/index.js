@@ -9,6 +9,34 @@ export default function Home() {
   const [gameLength, setGameLength] = useState(3); // in hours
   const [probability, setProbability] = useState(0);
   const [fillPercentage, setFillPercentage] = useState(0);
+  
+  // Function to generate stadium seats based on attendance
+  const getStadiumSeats = (row, attendance) => {
+    // Max capacity is 100,000
+    // Different rows have different capacities
+    const maxCapacity = 100000;
+    const rowWidths = [25, 27, 29, 31, 33, 33, 33, 33, 33];
+    const totalSpaces = rowWidths.reduce((a, b) => a + b, 0);
+    
+    // Calculate fill percentage based on attendance
+    const percentFull = Math.min(attendance / maxCapacity, 1);
+    
+    // Calculate how many positions should be filled in this row
+    const spacesToFill = Math.floor(rowWidths[row] * percentFull);
+    
+    // Create the seat string with filled and empty seats
+    let seatString = '';
+    for (let i = 0; i < rowWidths[row]; i++) {
+      // Alternate characters for visual variety
+      if (i < spacesToFill) {
+        seatString += i % 4 === 0 ? '@' : i % 3 === 0 ? '#' : i % 2 === 0 ? 'o' : '*';
+      } else {
+        seatString += ' ';
+      }
+    }
+    
+    return seatString;
+  };
 
   // Calculate probability of at least one death
   useEffect(() => {
@@ -56,29 +84,32 @@ export default function Home() {
             </div>
           </div>
           
-          <pre className={styles.stadium}>
+          <div className={styles.stadium}>
+            <pre>
 {`
-                  .-"      "-.
-                /            \\
-               |              |
-               |,  .-.  .-.  ,|
-               | )(__/  \\__)( |
-               |/     /\\     \\|
-      _       (_     ^^     _)       _
-     | \\________\\__|IIIIII|__/_______/ |
-     | |        \\____________/        | |
-     | |         ||        ||         | |
-     | |         ||        ||         | |
-     | |         ||        ||         | |
-     | |         ||        ||         | |
-     | |_________||________||_________| |
-     | |_________|/        \\|_________| |
-     | |         /          \\         | |
-     | |_______/            \\_______| |
-     |________/              \\________|
-        
+        .-""""-.
+       / _    _ \\
+      |  o    o  |
+      |    vv    |
+      |  \\____/  |
+   ___|          |___
+  /                   \\
+ /                     \\
+/                       \\
+|    ${getStadiumSeats(0, attendance)}   |
+|   ${getStadiumSeats(1, attendance)}  |
+|  ${getStadiumSeats(2, attendance)} |
+| ${getStadiumSeats(3, attendance)} |
+|${getStadiumSeats(4, attendance)}|
+|${getStadiumSeats(5, attendance)}|
+|${getStadiumSeats(6, attendance)}|
+|${getStadiumSeats(7, attendance)}|
+|${getStadiumSeats(8, attendance)}|
+ \\    ---HOME PLATE---    /
+  \\___________________/
 `}
-          </pre>
+            </pre>
+          </div>
         </div>
         
         <div className={styles.controls}>
@@ -95,12 +126,13 @@ export default function Home() {
           </div>
           
           <div className={styles.control}>
-            <label htmlFor="attendance">Attendance: {attendance.toLocaleString()}</label>
+            <label htmlFor="attendance">Attendance: {attendance.toLocaleString()} / 100,000</label>
             <input 
               type="range" 
               id="attendance" 
               min="1000" 
               max="100000" 
+              step="1000"
               value={attendance} 
               onChange={(e) => setAttendance(Number(e.target.value))} 
             />
