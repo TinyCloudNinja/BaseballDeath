@@ -46,6 +46,51 @@
     margin: 0;
   }
   
+  .mapContainer {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .map {
+    color: #00ff00;
+    font-size: 14px;
+    line-height: 1.2;
+    white-space: pre;
+    margin: 0;
+    text-align: left;
+  }
+  
+  .stadiumMarker {
+    position: absolute;
+    color: #00ff00;
+    font-size: 20px;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    transition: all 0.2s ease;
+  }
+  
+  .stadiumMarker:hover {
+    color: #ffff00;
+    font-size: 24px;
+    text-shadow: 0 0 5px #ffff00;
+  }
+  
+  .selectedMarker {
+    color: #ff0000;
+    font-size: 24px;
+    text-shadow: 0 0 5px #ff0000;
+  }
+  
+  .stadiumInfo {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    text-align: center;
+  }
+  
   .probabilityCircle {
     position: absolute;
     top: 40%;
@@ -110,6 +155,24 @@
     border-radius: 50%;
     background: #00ff00;
     cursor: pointer;
+  }
+  
+  .stateSelect {
+    width: 100%;
+    padding: 10px;
+    background-color: #222;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%2300FF00' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+    background-repeat: no-repeat;
+    background-position-x: 97%;
+    background-position-y: 50%;
   }
   
   .explanation {

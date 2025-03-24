@@ -1,48 +1,68 @@
+// Reset to national average when no stadium is selected
+const resetToNational = () => {
+    setSelectedStadium(null);
+    setSelectedState('United States');
+  };
 // File: pages/index.js
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import styles from '../styles/Home.module.css';
+import { stateDeathRates, nationalAverageDeathRate } from '../data/stateDeathRates';
+import { mlbStadiums } from '../data/mlbStadiums';
+import { usaAsciiMap } from '../data/usaAsciiMap';
 
 export default function Home() {
   const [medianAge, setMedianAge] = useState(35);
   const [attendance, setAttendance] = useState(30000);
   const [gameLength, setGameLength] = useState(3); // in hours
+  const [selectedState, setSelectedState] = useState('United States');
+  const [selectedStadium, setSelectedStadium] = useState(null);
   const [probability, setProbability] = useState(0);
   const [fillPercentage, setFillPercentage] = useState(0);
   
-  // Function to generate stadium seats based on attendance
-  const getStadiumSeats = (row, attendance) => {
-    // Max capacity is 100,000
-    // Different rows have different capacities
-    const maxCapacity = 100000;
-    const rowWidths = [25, 27, 29, 31, 33, 33, 33, 33, 33];
-    const totalSpaces = rowWidths.reduce((a, b) => a + b, 0);
-    
-    // Calculate fill percentage based on attendance
-    const percentFull = Math.min(attendance / maxCapacity, 1);
-    
-    // Calculate how many positions should be filled in this row
-    const spacesToFill = Math.floor(rowWidths[row] * percentFull);
-    
-    // Create the seat string with filled and empty seats
-    let seatString = '';
-    for (let i = 0; i < rowWidths[row]; i++) {
-      // Alternate characters for visual variety
-      if (i < spacesToFill) {
-        seatString += i % 4 === 0 ? '@' : i % 3 === 0 ? '#' : i % 2 === 0 ? 'o' : '*';
-      } else {
-        seatString += ' ';
-      }
-    }
-    
-    return seatString;
+  // Handle stadium selection
+  const handleStadiumClick = (stadium) => {
+    setSelectedStadium(stadium);
+    setSelectedState(stadium.state);
+  };
+  
+  // Create the stadium markers with dot selector
+  const renderStadiumMarkers = () => {
+    return mlbStadiums.map(stadium => {
+      const [x, y] = stadium.coords;
+      const isSelected = selectedStadium && selectedStadium.id === stadium.id;
+      
+      return (
+        <span 
+          key={stadium.id}
+          className={`${styles.stadiumMarker} ${isSelected ? styles.selectedMarker : ''}`}
+          style={{ 
+            left: `${x}%`, 
+            top: `${y}%` 
+          }}
+          onClick={() => handleStadiumClick(stadium)}
+          title={`${stadium.name} - ${stadium.team}`}
+        >
+          •
+        </span>
+      );
+    });
   };
 
   // Calculate probability of at least one death
   useEffect(() => {
-    // Base rate: 8.3 deaths per 1,000 people per year
+    // Get the appropriate death rate based on selected state or national average
+    let baseRatePer100k = nationalAverageDeathRate; // Default to national average
+    
+    if (selectedState !== 'United States' && stateDeathRates[selectedState]) {
+      baseRatePer100k = stateDeathRates[selectedState];
+    }
+    
+    // Convert from per 100,000 to per 1,000
+    const baseRatePer1000 = baseRatePer100k / 100;
+    
     // Convert to hourly rate
-    const hourlyRatePer1000 = 8.3 / 8760;
+    const hourlyRatePer1000 = baseRatePer1000 / 8760;
     
     // Adjust for age (simplified model)
     let ageMultiplier = 1;
@@ -54,13 +74,13 @@ export default function Home() {
     else ageMultiplier = 8;
     
     // Calculate probability for total attendance over game length
-    const individualRiskFor10Hours = hourlyRatePer1000 * gameLength * ageMultiplier / 1000;
-    const probOfNoDeath = Math.pow(1 - individualRiskFor10Hours, attendance);
+    const individualRiskForGameLength = hourlyRatePer1000 * gameLength * ageMultiplier / 1000;
+    const probOfNoDeath = Math.pow(1 - individualRiskForGameLength, attendance);
     const probOfAtLeastOneDeath = 1 - probOfNoDeath;
     
     setProbability(probOfAtLeastOneDeath);
     setFillPercentage(Math.min(probOfAtLeastOneDeath * 100, 100));
-  }, [medianAge, attendance, gameLength]);
+  }, [medianAge, attendance, gameLength, selectedState]);
 
   return (
     <div className={styles.container}>
@@ -149,6 +169,23 @@ export default function Home() {
               onChange={(e) => setGameLength(Number(e.target.value))} 
             />
           </div>
+          
+          <div className={styles.stadiumInfo}>
+            {selectedStadium ? (
+              <div>
+                <h3>{selectedStadium.name}</h3>
+                <p>{selectedStadium.team} - {selectedStadium.state}</p>
+                <button 
+                  className={styles.resetButton}
+                  onClick={resetToNational}
+                >
+                  Reset to National Average
+                </button>
+              </div>
+            ) : (
+              <p>Select a stadium on the map to calculate location-specific mortality rates</p>
+            )}
+          </div>
         </div>
         
         <div className={styles.explanation}>
@@ -159,10 +196,21 @@ export default function Home() {
             <li>Median age of attendees (affects mortality rate)</li>
             <li>Number of people attending the game</li>
             <li>Length of the game in hours</li>
+            <li>State-specific mortality rates (varies significantly by location)</li>
           </ul>
           <p>
-            The calculation uses the U.S. mortality rate of 8.3 deaths per 1,000 people per year, 
-            adjusted for time and age demographics.
+            The calculation uses state-specific mortality data from CDC (2023), with rates ranging from 
+            approximately 600 deaths per 100,000 in Hawaii to over 1,000 per 100,000 in states like 
+            Mississippi and West Virginia.
+          </p>
+          <p>
+            Current selected location: <strong>{selectedStadium ? 
+              `${selectedStadium.name} (${selectedStadium.state})` : 
+              'National Average'}</strong>
+          </p>
+          <p>
+            Mortality rate: <strong>{selectedState === 'United States' ? 
+              nationalAverageDeathRate : stateDeathRates[selectedState]} deaths per 100,000 population</strong>
           </p>
         </div>
       </main>
